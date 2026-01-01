@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robux Calculator Pro</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #191B1D;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            user-select: none; /* Чтобы текст не выделялся при кликах */
+        }
+        .container {
+            background-color: #2B2D2F;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 360px;
+            position: relative;
+            transition: height 0.3s;
+        }
+        /* Кнопка смены языка */
+        .lang-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #00A2FF;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .lang-btn:hover { background: rgba(255, 255, 255, 0.2); }
+
+        h2 { margin-top: 0; margin-bottom: 20px; color: #fff; font-size: 22px;}
+
+        /* Переключатель режимов (Табы) */
+        .mode-switch {
+            display: flex;
+            background: #191B1D;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .mode-btn.active {
+            background: #393B3D;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Поле ввода */
+        input {
+            width: 85%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #393B3D;
+            background-color: #191B1D;
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus { border-color: #00A2FF; }
+
+        /* Результат */
+        .result-box {
+            background-color: #393B3D; /* Немного светлее фона */
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #00A2FF;
+        }
+        .result-label {
+            font-size: 14px;
+            color: #ADB0B1;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #00E676;
+            display: block;
+        }
+
+        .fee-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">EN</button>
+
+    <h2 id="title">Калькулятор Robux</h2>
+
+    <div class="mode-switch">
+        <button class="mode-btn active" onclick="setMode('get')" id="tabGet">Хочу получить</button>
+        <button class="mode-btn" onclick="setMode('cost')" id="tabCost">Цена Gamepass</button>
+    </div>
+
+    <input type="number" id="inputVal" placeholder="0" oninput="calculate()">
+
+    <div class="result-box">
+        <span class="result-label" id="resLabel">Ставь цену:</span>
+        <span id="res" class="price">0 R$</span>
+    </div>
+
+    <div class="fee-info" id="footerInfo">
+        Комиссия 30% | Вы получаете 70%
+    </div>
+</div>
+
+<script>
+    // Настройки по умолчанию
+    let currentLang = 'ru';
+    let currentMode = 'get'; // 'get' = сколько хочу получить, 'cost' = сколько стоит пасс
+
+    // Словарь переводов
+    const translations = {
+        ru: {
+            title: "Калькулятор Robux",
+            tabGet: "Хочу получить",
+            tabCost: "Цена Gamepass",
+            labelSetPrice: "Ставь цену:",
+            labelYouGet: "Ты получишь:",
+            footerInfo: "Комиссия 30% | Вы получаете 70%",
+            btn: "EN"
+        },
+        en: {
+            title: "Robux Calculator",
+            tabGet: "I want to get",
+            tabCost: "Gamepass Price",
+            labelSetPrice: "Set Price:",
+            labelYouGet: "You Receive:",
+            footerInfo: "Fee 30% | You get 70%",
+            btn: "RU"
+        }
+    };
+
+    function toggleLanguage() {
+        currentLang = currentLang === 'ru' ? 'en' : 'ru';
+        updateUI();
+    }
+
+    function setMode(mode) {
+        currentMode = mode;
+
+        // Обновляем визуально кнопки (табы)
+        document.getElementById('tabGet').classList.toggle('active', mode === 'get');
+        document.getElementById('tabCost').classList.toggle('active', mode === 'cost');
+
+        // Сбрасываем поле ввода для красоты, или оставляем (по желанию)
+        // document.getElementById('inputVal').value = '';
+
+        updateUI();
+    }
+
+    function updateUI() {
+        const t = translations[currentLang];
+
+        // Обновляем тексты
+        document.getElementById('title').innerText = t.title;
+        document.getElementById('tabGet').innerText = t.tabGet;
+        document.getElementById('tabCost').innerText = t.tabCost;
+        document.getElementById('footerInfo').innerText = t.footerInfo;
+        document.getElementById('langBtn').innerText = t.btn;
+
+        // Обновляем подпись результата в зависимости от режима
+        const label = document.getElementById('resLabel');
+        if (currentMode === 'get') {
+            label.innerText = t.labelSetPrice;
+        } else {
+            label.innerText = t.labelYouGet;
+        }
+
+        // Пересчитываем цифры
+        calculate();
+    }
+
+    function calculate() {
+        const val = parseFloat(document.getElementById('inputVal').value);
+        const resultEl = document.getElementById('res');
+
+        if (!val || val < 0) {
+            resultEl.innerText = "0 R$";
+            return;
+        }
+
+        let finalValue;
+
+        if (currentMode === 'get') {
+            // Режим: Я хочу получить Х чистыми
+            // Формула: X / 0.7 (округляем вверх)
+            finalValue = Math.ceil(val / 0.7);
+        } else {
+            // Режим: Я ставлю цену Х
+            // Формула: X * 0.7 (округляем вниз, т.к. Роблокс отбрасывает копейки)
+            finalValue = Math.floor(val * 0.7);
+        }
+
+        resultEl.innerText = finalValue + " R$";
+    }
+</script>
+
+</body>
+</html>
